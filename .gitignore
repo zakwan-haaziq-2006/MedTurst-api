@@ -1,0 +1,37 @@
+# Virtual environments
+newenv/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Downloaded models
+models/
+*.pkl
+*.h5
+
+# Environment variables
+.env
+
+
+# Prediction Modules (keep code, ignore models)
+# BrainTuemer/  <-- Removed (typo and would ignore code)
+# DiabetesPred/ <-- Removed (would ignore code)
+# HeartDisease/ <-- Removed (would ignore code)
+# lifeRiskPredictor/ <-- Removed (would ignore code)
+
+# Models are ignored by *.pkl and *.h5 above.
+# Exceptions (files we want to keep in repo)
+!DiabetesPred/preprocessor.pkl
+
+# Documentation/Reports (exclude from repo)
+*.pdf
+*.png
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
