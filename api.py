@@ -13,7 +13,9 @@ import io
 # -----------------------------
 # Create App
 # -----------------------------
-app = FastAPI()
+import os
+root_path = os.getenv("ROOT_PATH", "")
+app = FastAPI(root_path=root_path)
 
 
 # -----------------------------
