@@ -9,6 +9,7 @@ from BrainTumer.brain_model import predict_brain_tumor
 
 from PIL import Image
 import io
+import traceback
 
 # -----------------------------
 # Create App
@@ -35,29 +36,34 @@ def health_check():
 # -----------------------------
 @app.post("/predict/heart_disease")
 async def predict_heart_disease(user_input: HeartDiseaseInput):
-
-    input_dict = {
-        "Age": user_input.age,
-        "Sex": user_input.sex,
-        "ChestPainType": user_input.chest_pain_type,
-        "RestingBP": user_input.resting_bp,
-        "Cholesterol": user_input.colestrol,
-        "FastingBS": user_input.fasting_bs,
-        "RestingECG": user_input.resting_ecg,
-        "MaxHR": user_input.max_hr,
-        "ExerciseAngina": user_input.ex_ang,
-        "Oldpeak": user_input.old_peak,
-        "ST_Slope": user_input.slope
-    }
-
-    prediction, probability = heart_model_predict(input_dict)
-
-    return JSONResponse(
-        content={
-            "prediction": int(prediction),
-            "probability": float(probability)
+    try:
+        input_dict = {
+            "Age": user_input.age,
+            "Sex": user_input.sex,
+            "ChestPainType": user_input.chest_pain_type,
+            "RestingBP": user_input.resting_bp,
+            "Cholesterol": user_input.colestrol,
+            "FastingBS": user_input.fasting_bs,
+            "RestingECG": user_input.resting_ecg,
+            "MaxHR": user_input.max_hr,
+            "ExerciseAngina": user_input.ex_ang,
+            "Oldpeak": user_input.old_peak,
+            "ST_Slope": user_input.slope
         }
-    )
+
+        prediction, probability = heart_model_predict(input_dict)
+
+        return JSONResponse(
+            content={
+                "prediction": int(prediction),
+                "probability": float(probability)
+            }
+        )
+    except Exception as e:
+        return JSONResponse(
+            content={"error": str(e), "traceback": traceback.format_exc()},
+            status_code=500
+        )
 
 
 # -----------------------------
@@ -65,17 +71,22 @@ async def predict_heart_disease(user_input: HeartDiseaseInput):
 # -----------------------------
 @app.post("/predict/diabetes")
 async def predict_diabetes(user_input: DiabetesInput):
+    try:
+        input_dict = user_input.dict()
 
-    input_dict = user_input.dict()
+        prediction, probability = diabetes_model_predict(input_dict)
 
-    prediction, probability = diabetes_model_predict(input_dict)
-
-    return JSONResponse(
-        content={
-            "prediction": int(prediction),
-            "probability": float(probability)
-        }
-    )
+        return JSONResponse(
+            content={
+                "prediction": int(prediction),
+                "probability": float(probability)
+            }
+        )
+    except Exception as e:
+        return JSONResponse(
+            content={"error": str(e), "traceback": traceback.format_exc()},
+            status_code=500
+        )
 
 
 # -----------------------------
@@ -83,17 +94,22 @@ async def predict_diabetes(user_input: DiabetesInput):
 # -----------------------------
 @app.post("/predict/life_risk")
 async def predict_life_risk(user_input: LifeRiskInput):
+    try:
+        input_dict = user_input.dict()
 
-    input_dict = user_input.dict()
+        prediction, probability = predict_life_risk_fn(input_dict)
 
-    prediction, probability = predict_life_risk_fn(input_dict)
-
-    return JSONResponse(
-        content={
-            "prediction": prediction,
-            "probability": float(probability)
-        }
-    )
+        return JSONResponse(
+            content={
+                "prediction": prediction,
+                "probability": float(probability)
+            }
+        )
+    except Exception as e:
+        return JSONResponse(
+            content={"error": str(e), "traceback": traceback.format_exc()},
+            status_code=500
+        )
 
 
 # -----------------------------
@@ -101,21 +117,26 @@ async def predict_life_risk(user_input: LifeRiskInput):
 # -----------------------------
 @app.post("/predict/brain_tumor")
 async def predict_tumor_endpoint(file: UploadFile = File(...)):
+    try:
+        if not file.content_type.startswith("image"):
+            return JSONResponse(
+                content={"error": "Please upload an image file"},
+                status_code=400
+            )
 
-    if not file.content_type.startswith("image"):
+        image_bytes = await file.read()
+        image = Image.open(io.BytesIO(image_bytes))
+
+        label, confidence = predict_brain_tumor(image)
+
         return JSONResponse(
-            content={"error": "Please upload an image file"},
-            status_code=400
+            content={
+                "prediction": label,
+                "confidence": round(confidence, 4)
+            }
         )
-
-    image_bytes = await file.read()
-    image = Image.open(io.BytesIO(image_bytes))
-
-    label, confidence = predict_brain_tumor(image)
-
-    return JSONResponse(
-        content={
-            "prediction": label,
-            "confidence": round(confidence, 4)
-        }
-    )
+    except Exception as e:
+        return JSONResponse(
+            content={"error": str(e), "traceback": traceback.format_exc()},
+            status_code=500
+        )
