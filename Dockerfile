@@ -4,6 +4,10 @@ WORKDIR /app
 
 # Create a non-root user (required for Hugging Face Spaces)
 RUN useradd -m -u 1000 user
+
+# Ensure /app is owned by user so we can write to it
+RUN chown user:user /app
+
 USER user
 ENV PATH="/home/user/.local/bin:$PATH"
 
