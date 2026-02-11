@@ -7,14 +7,19 @@ from model_loader import load_model_from_drive
 
 
 # -----------------------------
-# Load Model (once)
+# Load Model Lazy
 # -----------------------------
-try:
-    model = load_model_from_drive("brain")
+model = None
 
-except Exception as e:
-    print(f"Error loading brain tumor model: {e}")
-    model = None
+def get_model():
+    global model
+    if model is None:
+        try:
+            model = load_model_from_drive("brain")
+        except Exception as e:
+            print(f"Error loading brain tumor model: {e}")
+            raise e
+    return model
 
 
 # -----------------------------
@@ -33,8 +38,9 @@ CLASS_NAMES = [
 # -----------------------------
 def predict_brain_tumor(img: Image.Image):
 
+    model = get_model()
     if model is None:
-        raise ValueError("Brain tumor model not loaded")
+        raise ValueError("Brain tumor model failed to load")
 
     img = img.convert("RGB")
     img = img.resize((224, 224))

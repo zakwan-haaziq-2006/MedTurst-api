@@ -5,7 +5,8 @@ pillow
 pandas
 scikit-learn
 joblib
-gdown
+gdown>=5.1.0
+requests
 xgboost
 tensorflow-cpu
 numpy

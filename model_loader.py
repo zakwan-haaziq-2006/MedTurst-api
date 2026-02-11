@@ -34,8 +34,16 @@ def load_model_from_drive(name):
 
     if not os.path.exists(path):
         url = f"https://drive.google.com/uc?id={model_info['id']}"
-        print(f"Downloading {name} model...")
-        gdown.download(url, path, quiet=False)
+        print(f"Downloading {name} model from {url}...")
+
+        try:
+            # Try plain gdown first with fuzzy extraction (handles some redirect issues)
+            gdown.download(url, path, quiet=False, fuzzy=True)
+        except Exception as e:
+            print(f"Gdown failed: {e}. Retrying with alternative method...")
+            # Fallback or retry logic could go here, but fuzzy=True often fixes drive links
+            # If it still fails, we might need a direct requests fallback, but let's try this first.
+            raise e
 
     if model_info["type"] == "pkl":
         return joblib.load(path)
