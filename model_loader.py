@@ -1,26 +1,27 @@
 import os
-import gdown
 import joblib
-from tensorflow.keras.models import load_model as keras_load_model
+from huggingface_hub import hf_hub_download
+
+REPO_ID = "Zakwan2006/medtrust-models"
 
 MODELS = {
     "diabetes": {
-        "id": "11iUnppIjNEIClNzqKQDjc4g5rkG32RUf",
+        "filename": "diabetes.pkl",
         "path": "models/diabetes.pkl",
         "type": "pkl"
     },
     "heart": {
-        "id": "1B8_ujjPVgClrmpqTIn-HCsVXTc_tJfbb",
+        "filename": "heart.pkl",
         "path": "models/heart.pkl",
         "type": "pkl"
     },
     "life": {
-        "id": "1rwqFqAydkBb_6jBBVhStcdyGmVUSCAsV",
+        "filename": "life.pkl",
         "path": "models/life.pkl",
         "type": "pkl"
     },
     "brain": {
-        "id": "1xb-JBP1YaJTTYUtUvY6ep-SLC_0xknDM",
+        "filename": "brain_model.h5",
         "path": "models/brain_model.h5",
         "type": "h5"
     }
@@ -33,19 +34,16 @@ def load_model_from_drive(name):
     path = model_info["path"]
 
     if not os.path.exists(path):
-        url = f"https://drive.google.com/uc?id={model_info['id']}"
-        print(f"Downloading {name} model from {url}...")
-
-        try:
-            # Try plain gdown first with fuzzy extraction (handles some redirect issues)
-            gdown.download(url, path, quiet=False, fuzzy=True)
-        except Exception as e:
-            print(f"Gdown failed: {e}. Retrying with alternative method...")
-            # Fallback or retry logic could go here, but fuzzy=True often fixes drive links
-            # If it still fails, we might need a direct requests fallback, but let's try this first.
-            raise e
+        print(f"Downloading {name} model from HF Hub ({REPO_ID})...")
+        downloaded_path = hf_hub_download(
+            repo_id=REPO_ID,
+            filename=model_info["filename"],
+            local_dir="models",
+        )
+        print(f"  ✓ {name} model downloaded to {downloaded_path}")
 
     if model_info["type"] == "pkl":
         return joblib.load(path)
     elif model_info["type"] == "h5":
+        from tensorflow.keras.models import load_model as keras_load_model
         return keras_load_model(path)

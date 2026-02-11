@@ -10,9 +10,13 @@ def get_preprocessor():
     global preprocessor
     if preprocessor is None:
         import os
-        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        PREPROCESSOR_PATH = os.path.join(BASE_DIR, "preprocessor.pkl")
-        preprocessor = pickle.load(open(PREPROCESSOR_PATH, "rb"))
+        from huggingface_hub import hf_hub_download
+        local_path = hf_hub_download(
+            repo_id="Zakwan2006/medtrust-models",
+            filename="preprocessor.pkl",
+            local_dir="models",
+        )
+        preprocessor = pickle.load(open(local_path, "rb"))
     return preprocessor
 
 def get_model():
